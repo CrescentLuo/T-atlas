@@ -3,7 +3,7 @@ import numpy
 if len(sys.argv) == 5:
     col_s = int(sys.argv[3]) - 1
     col_e = int(sys.argv[4])
-if len(sys.argv) == 3:
+if len(sys.argv) >= 3:
     Outfile = sys.argv[2]
 else:
     Outfile = "Zscore.txt"
