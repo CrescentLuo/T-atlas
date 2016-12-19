@@ -10,7 +10,10 @@ else:
 with open(sys.argv[1]) as InputFile, open(Outfile,"w") as OutputFile:
     header = InputFile.readline()
     if len(sys.argv) == 5:
-        header = header[col_s:col_e]
+        header = header.split()
+        header = [header[0]] + header[col_s:col_e]
+        #print header
+        header = '\t'.join(header)
     OutputFile.write(header)
     for line in InputFile:
         sline = line.split()
