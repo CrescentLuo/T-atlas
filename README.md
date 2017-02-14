@@ -1,4 +1,4 @@
-# T-atlas (Move to bitbucket to keep private！)
+# T-atlas 
 ## T-atlas Ver 0.0.1
 * Online Time： 2017-1-18
 * Functions:
