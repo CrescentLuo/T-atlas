@@ -30,7 +30,7 @@ for((i=0; i<${#todo_array[*]}; i++));do
     {
         do_job ${todo_array[$i]} && {
             echo `date` >> ${job_name}.log
-            echo finish job ${todo_array[$index]} >> ${job_name}.log
+            echo finish job ${todo_array[$i]} >> ${job_name}.log
             sleep 1
         } || {
             echo job ${todo_array[$i]} error >> ${job_name}.log
