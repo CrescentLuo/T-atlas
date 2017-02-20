@@ -5,16 +5,19 @@ job_name=$1_cutAdap
 if [[ -e ${job_name}.log ]];then
     rm ${job_name}.log
 fi
-echo `date` >> ${job_name}.log
-echo "Run job list $job_name" >> ${job_name}.log
+{
+    echo `date` >> ${job_name}.log
+    echo "Run job list $job_name" >> ${job_name}.log
+}
 sleep 1
 
 function cut_adapter {
-    sleep 1
-    echo `date` >> ${job_name}.log
-    echo "starting job $1" >> ${job_name}.log
-    cutadapt -f fastq --times 2 -e 0.0 -O 5 --quality-cutoff 6 -m 20 -b AAGCAGTGGTATCAACGCAGAGTACATGGG -b AAGCAGTGGTATCAACGCAGAGTACT{30}VN -b AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -b TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT -o $1_R1.polyATrim.adapterTrim.fastq -p $1_R2.polyATrim.adapterTrim.fastq $1_1.fastq.gz $1_2.fastq.gz > $1.polyATrim.adapterTrim.metrics
-    sleep 5
+    {
+        echo `date` >> ${job_name}.log
+        echo "starting job $1" >> ${job_name}.log
+    }
+    cutadapt -f fastq --times 2 -e 0.0 -O 5 --quality-cutoff 20,20 -m 20 -b AAGCAGTGGTATCAACGCAGAGTACATGGG -b AAGCAGTGGTATCAACGCAGAGTACT{30}VN -b AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -b TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT -B AAGCAGTGGTATCAACGCAGAGTACATGGG -B AAGCAGTGGTATCAACGCAGAGTACT{30}VN -B AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA -B TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT -o $1_R1.polyATrim.adapterTrim.fastq -p $1_R2.polyATrim.adapterTrim.fastq $1_1.fastq.gz $1_2.fastq.gz > $1.polyATrim.adapterTrim.metrics
+    sleep 2
 }
 
 todo_array=($(cat $1))
@@ -35,7 +38,7 @@ for((i=0; i<${#todo_array[*]}; i++));do
         cut_adapter ${todo_array[$i]} && {
             echo `date` >> ${job_name}.log
             echo finish job ${todo_array[$i]} >> ${job_name}.log
-            sleep 1
+            sleep 5
         } || {
             echo job ${todo_array[$i]} error >> ${job_name}.log
         }

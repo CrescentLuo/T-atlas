@@ -5,12 +5,16 @@ job_name=$1
 echo `date` >> ${job_name}.log
 echo "Run job list $job_name" >> ${job_name}.log
 sleep 1
-function do_job {
+function tophat2_mapping {
     echo `date` >> ${job_name}.log
-    echo "starting jobC $1" >> ${job_name}.log
+    echo "starting job $1" >> ${job_name}.log
     fastq_file=${1##*/}
     tophat2 -g 1 -a 6 --microexon-search -p 10 -G /picb/rnomics1/database/Mouse/mm10/annotation/knownGene.gtf -o ./${fastq_file%%.*}  /picb/rnomics1/database/Mouse/mm10/genome/mm10_all $1 &> ${fastq_file%%.*}_tophat2.log
     sleep 1
+}
+function hisat2_mapping {
+        echo `date` >> ${job_name}.log
+        echo "starting jobs"
 }
 #ls todo files first to generate job list
 todo_array=($(cat $1))
@@ -28,7 +32,7 @@ done >&6
 for((i=0; i<${#todo_array[*]}; i++));do
     read -u6
     {
-        do_job ${todo_array[$i]} && {
+        tophat2_mapping ${todo_array[$i]} && {
             echo `date` >> ${job_name}.log
             echo finish job ${todo_array[$i]} >> ${job_name}.log
             sleep 1
