@@ -2,6 +2,9 @@
 #Record current date
 
 job_name=$1
+if [[ -e ${job_name}.log]]{
+    rm ${job_name}.log
+}
 echo `date` "Run job list $job_name" >> ${job_name}.log
 sleep 1
 function tophat2_mapping_paired_end {
@@ -13,11 +16,13 @@ function tophat2_mapping_paired_end {
 }
 function hisat2_mapping_paired_end {
     echo `date` "starting job $1" >> ${job_name}.log
-    fastq_file=${1##*.}
+    fastq_file=${1##*/}
     fastq_file=${fastq_file%%.*}
     # -x hisat2 index dir
     # -1 -2 paired-end fastq files
-    hisat2 -x /picb/rnomics1/database/Mouse/mm10/genome/mm10_all_index --known-splicesite-infile /picb/rnomics1/database/Mouse/mm10/annotation/ref_all_spsites.txt -1 $1_R1.fq -2 $1_R2.fq -S ${fastq_file}_hisat2.sam -p 10 &> ${fastq_file}_hisat2.log
+    touch ${fastq_file}_ht2.log
+    echo $fastq_file
+    hisat2 -x /picb/rnomics1/database/Mouse/mm10/genome/mm10_all_index --known-splicesite-infile /picb/rnomics1/database/Mouse/mm10/annotation/ref_all_spsites.txt -1 $1_R1.polyATrim.adapterTrim.fastq -2 $1_R2.polyATrim.adapterTrim.fastq -S ${fastq_file}_ht2.sam -p 10 &> ${fastq_file}_ht2.log
 }
 #ls todo files first to generate job list
 todo_array=($(cat $1))
