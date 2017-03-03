@@ -8,10 +8,7 @@ import pysam, math
 sys.path.insert(0, '/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19')
 from refFlat import RefFlat
 debug = 0
-# /picb/rnomics1/sszhu/singleWork/dataFromLi/wig_int_wald_rank_12_final.pl
-#  $se_hat = sqrt( $p1_hat*(1-$p1_hat)/$n1 + $p2_hat*(1-$p2_hat)/$n2 );
-#  $wald_stat = ($p1_hat - $p2_hat) / $se_hat;
-# /picb/rnomics1/xiaoou/program/bamTobpkm.py
+
 def pvalue(x):
     '''Cumulative distribution function for the standard normal distribution
     python
