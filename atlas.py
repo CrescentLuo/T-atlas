@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import time, os, glob, re, math, sys
-import argparse
+from optparse import OptionParser
 #APP_DIR=os.path.split(os.path.abspath(__file__))[0]
 from parse import getFiles
 import pysam, math
@@ -129,13 +129,13 @@ def summaryFiles(options):
             aa, bb = int(aa), int(bb)
             starts.append(aa)
             ends.append(bb)
-            values=[]
+            values = []
             for sam in sams:
-                n=0
-                for aread in sam.fetch(ref.chr,aa,bb):
-                    n+=aread.get_overlap(aa,bb)
+                n = 0
+                for aread in sam.fetch(ref.chr, aa, bb):
+                    n += aread.get_overlap(aa, bb)
                 values.append(n)
-                sam2values.setdefault(sam,[]).append(n)
+                sam2values.setdefault(sam, []).append(n)
                 sam2lens.setdefault(sam,[]).append(bb-aa)
                 sam2HPBs.setdefault(sam,[]).append(n*1.0*10**9/(sam2rlength[sam]*sam2size[sam]*(bb-aa)))
         ### get sam2sum and sam2len
@@ -197,27 +197,26 @@ if __name__ == '__main__':
     '''
     #python
     #import argparse
-    des='''
-This program is used to calculate BPKM values for each merged gene in refFlat file and different comparisons.
-Below is the perl script to transform knowGene.txt to refFlat format:
-perl -F\'\\t\' -ane \'if($#F<=9){$F[4]=~s/ /_/g;$a{$F[0]}=$F[4]}else{$"="\\t";print "$a{$F[0]}\\t@F[0..9]\\n"}\' kgXref.txt knownGene.txt > knownRef.txt
-\nWald test score: r1=n1/N1; r2=n2/N2; var=r1*(1-r1)/N1+r2*(1-r2)/N2; score=(r2-r1)/math.sqrt(var)
-Specificity score: sum((1-(x/max(X)))/n-1)
+    usage='''
+    This program is used to calculate BPKM values for each merged gene in refFlat file and different comparisons.
+    Below is the perl script to transform knowGene.txt to refFlat format:
+    perl -F\'\\t\' -ane \'if($#F<=9){$F[4]=~s/ /_/g;$a{$F[0]}=$F[4]}else{$"="\\t";print "$a{$F[0]}\\t@F[0..9]\\n"}\' kgXref.txt knownGene.txt > knownRef.txt
+    \nWald test score: r1=n1/N1; r2=n2/N2; var=r1*(1-r1)/N1+r2*(1-r2)/N2; score=(r2-r1)/math.sqrt(var)
+    Specificity score: sum((1-(x/max(X)))/n-1)
     '''
-    parser = argparse.ArgumentParser(description=des,
-            epilog='eg: %(prog)s -i "*.bam" -c "HCT116_CCAT1_kd/HCT116_scramble,PA1_SL5AC_kd/PA1_scramble_1" -o tt.txt',
-            prefix_chars="-+", fromfile_prefix_chars="@",formatter_class=argparse.RawTextHelpFormatter)
-    parser.add_argument('-i', '--infile', dest='infile',  help='input file name. "," seprated bam files, support "*" and "|", such as -i "*.bam|tt/*.bam,mm/*.bam"', required =True)
-    #parser.add_argument('-f', '--fasta', dest='fasta',  help='genome fasta file.',default='/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/hg19.fa')
-    parser.add_argument('-o', '--output', dest='outfile', help='output file name, default="output.txt"', default='output.txt')
+    parser = OptionParser(usage=usage)
+    parser.add_option('-i', '--infile', dest='infile',  help='input file name. "," seprated bam files, support "*" and "|", such as -i "*.bam|tt/*.bam,mm/*.bam"', required =True)
+    #parser.add_option('-f', '--fasta', dest='fasta',  help='genome fasta file.',default='/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/seqs/hg19.fa')
+    parser.add_option('-o', '--output', dest='outfile', help='output file name, default="output.txt"', default='output.txt')
     refs=['"-r /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/refFlat.txt"',
         "Other useful annotations:",
         "-r /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/knownRef.txt",
         "-r /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/20131128/refFlat.txt",
         "-r /picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/20131128/knownRef.txt"]
-    parser.add_argument('-r', '--refFlat', dest='refFlat', help='gene annotation file from UCSC, default='+"\n".join(refs), default='/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/refFlat.txt')
-    parser.add_argument('-g', '--genes', dest='genes',  help='Only look at the selected genes, "," seprated comparison, default=None')
-    parser.add_argument('-c', '--cmps', dest='cmps',  help='Compare between two samples, "," seprated comparison, such as -c "HCT116_CCAT1_kd/HCT116_scramble,PA1_SL5AC_kd/PA1_scramble_1", default=file[1]/file[0]')
+    parser.add_option('-r', '--refFlat', dest='refFlat', help='gene annotation file from UCSC, default='+"\n".join(refs), default='/picb/extprog/biopipeline/data/database/20110414/UCSC/hg19/refFlat.txt')
+    parser.add_option('-g', '--genes', dest='genes',  help='Only look at the selected genes, "," seprated comparison, default=None')
+    parser.add_option('-s', '--strandness', action="store_true", dest="strandness", default=False, help="Strand-spcific sequencing library type")
+    parser.add_option('-c', '--cmps', dest='cmps',  help='Compare between two samples, "," seprated comparison, such as -c "HCT116_CCAT1_kd/HCT116_scramble,PA1_SL5AC_kd/PA1_scramble_1", default=file[1]/file[0]')
     options= parser.parse_args()
     print '###Parameters:'
     for key,val in options.__dict__.items():
@@ -225,7 +224,7 @@ Specificity score: sum((1-(x/max(X)))/n-1)
     print '###Parameters:\n',
     options.infile=getFiles(options.infile)
     if options.genes:
-        options.genes=re.split("\s*, \s*", options.genes)
+        options.genes = re.split("\s*, \s*", options.genes)
     summaryFiles(options)
 
    

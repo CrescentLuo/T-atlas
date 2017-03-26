@@ -13,12 +13,12 @@ warnings.formatwarning = custom_formatwarning
 dataDir = os.path.split(__file__)[0]
 
 class ref2infor(dict):
-    def __init__(self,file = os.path.join(dataDir, 'refFlat.txt')):
+    def __init__(self, file=os.path.join(dataDir, 'refFlat.txt')):
         ref2infor = {}
         for line in open(file):
             xl = line.rstrip().split('\t')
             if len(xl) < 3: continue
-            if not re.match('chr\w{,2}$',xl[2]): continue
+            if not re.match('chr‘\w’{,2}$',xl[2]): continue
             #### use loc as unique id
             ref=Ref2eles(xl)
             ref2infor[xl[1]]=ref
@@ -51,31 +51,31 @@ class Refs(list):
     #        return str(ref)
 class Ref2eles:   #### parse elements of each refseq
     def __init__(self,xl):
-        self.data=xl
-        self.ref=xl[1]
-        self.ele2locs={}
-        self.exonsAdn3k=''
-        self.exons=''
-        self.introns=''    ### updated by sszhu1007@gmail.com 11.11.17 12:11:20 ###
-        self.dn3k=''
-        self.promoter=''
-        self.chr=xl[2]
-        self.sym=xl[0]
-        self.sign=xl[3]
-        self.la=xl[4]
-        self.lb=xl[5]
-        self.TSS,self.TTS=xl[4],xl[5]
-        self.ele2locs['L_UTR']=[(xl[4],xl[6])]
-        self.ele2locs['R_UTR']=[(xl[7],xl[5])]
-        self.ele2locs['5_UTR'],self.ele2locs['3_UTR']=\
-            self.ele2locs['L_UTR'],self.ele2locs['R_UTR']
-        self.ele2locs['promoter']=[(str(int(xl[4])-2000),xl[4])]
-        self.promoter=[(str(int(xl[4])-2000),str(int(xl[4])+2000))]
-        self.ele2locs['promoter_body']=[(str(int(xl[4])-2000),xl[5])]
-        self.dn3k=(xl[5],str(int(xl[5])+3000))
-        if xl[3]=='-':
-            self.TSS,self.TTS=xl[5],xl[4]
-            self.ele2locs['5_UTR'],self.ele2locs['3_UTR']=\
+        self.data = xl
+        self.ref = xl[1]
+        self.ele2locs = {}
+        self.exonsAdn3k = ''
+        self.exons = ''
+        self.introns = ''    ### updated by sszhu1007@gmail.com 11.11.17 12:11:20 ###
+        self.dn3k = ''
+        self.promoter = ''
+        self.chr = xl[2]
+        self.sym = xl[0]
+        self.sign = xl[3]
+        self.la = xl[4]
+        self.lb = xl[5]
+        self.TSS, self.TTS = xl[4], xl[5]
+        self.ele2locs['L_UTR'] = [(xl[4], xl[6])]
+        self.ele2locs['R_UTR'] = [(xl[7], xl[5])]
+        self.ele2locs['5_UTR'], self.ele2locs['3_UTR'] = \
+            self.ele2locs['L_UTR'], self.ele2locs['R_UTR']
+        self.ele2locs['promoter'] = [(str(int(xl[4])-2000), xl[4])]
+        self.promoter = [(str(int(xl[4]) - 2000), str(int(xl[4]) + 2000))]
+        self.ele2locs['promoter_body'] = [(str(int(xl[4]) - 2000), xl[5])]
+        self.dn3k = (xl[5], str(int(xl[5]) + 3000))
+        if xl[3] == '-':
+            self.TSS,self.TTS = xl[5],xl[4]
+            self.ele2locs['5_UTR'], self.ele2locs['3_UTR'] = \
                 self.ele2locs['R_UTR'],self.ele2locs['L_UTR']
             self.ele2locs['promoter']=[(xl[5],str(int(xl[5])+2000))]
             self.promoter=[(str(int(xl[5])-2000),str(int(xl[5])+2000))]
@@ -188,7 +188,7 @@ class RefFlat:
             #xl=line.rstrip("\n").split('\t')
             if symbols and (xl[0] not in symbols): continue
             if len(xl)<3: continue
-            if not re.match('chr\w{,2}$',xl[2]): continue
+            if not re.match('chr\w{,2}$', xl[2]): continue
             #### use loc as unique id
             #loc='%s:%s-%s:%s'%(xl[2],xl[4],xl[5],xl[3])
             #if loc in self.locs: continue
@@ -680,7 +680,7 @@ class Bed:
 #re.search('^(chr\S+:\d+)$','chr23:234234').groups()
 #mm=re.search('^(chr\S+):(\d+)$','chr23:234234').groups()
 #tt,aa=re.search('^(chr\S+):(\d+)$','chr23:234234').groups()
-            if re.search('^chr\S+:\d+-\d+',xl[0]):
+            if re.search('^chr\S+:\d+-\d+', xl[0]):
                 #chr,la,lb=re.search('^(chr\S+):(\d+)-(\d+)',xl[0])
                 loc=xl[0]
             elif re.search('^chr\S+:\d+$',xl[0]):
