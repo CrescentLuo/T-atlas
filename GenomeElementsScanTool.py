@@ -19,7 +19,7 @@ def readRefFile(refFile):
             exonCnt = int(sline[8])
             exonS = sline[9].rstrip(',').split(',')
             exonE = sline[10].rstrip(',').split(',')
-            transcript = [gene,chrom,strand,txS,txE,cdsS,cdsE,exonCnt,exonS,exonE]
+            transcript = [gene, chrom, strand, txS, txE, cdsS, cdsE, exonCnt, exonS, exonE]
             geneSet.append(transcript)
             if chrom not in chromDict:
                 chromDict[chrom] = len(chromDict)
