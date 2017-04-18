@@ -1,0 +1,9 @@
+Tue Apr 18 15:46:47 CST 2017 Run job list python_files
+Tue Apr 18 15:46:48 CST 2017 starting job FilterExpresion.py
+Tue Apr 18 15:46:48 CST 2017 starting job FetchByColumn.py
+Tue Apr 18 15:46:48 CST 2017 starting job ReadLength.py
+Tue Apr 18 15:46:48 CST 2017 starting job Zscore.py
+Tue Apr 18 15:46:48 CST 2017 finish job FilterExpresion.py
+Tue Apr 18 15:46:48 CST 2017 finish job ReadLength.py
+Tue Apr 18 15:46:48 CST 2017 finish job FetchByColumn.py
+Tue Apr 18 15:46:48 CST 2017 finish job Zscore.py
