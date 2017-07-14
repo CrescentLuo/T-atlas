@@ -1,5 +1,8 @@
 __author__ = 'luozheng'
 import sys
+import argparse
+import intervaltree
+
 geneSet = []
 chromDict = {}
 refFile = sys.argv[1]
