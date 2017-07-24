@@ -43,7 +43,7 @@ def kmerFreq(lock, K, line):
 with open(args.bed) as bedFile:
     lock = Lock()
     pool = Pool(processes = int(args.process))
-    K = int(args.repeak)
+    K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
     fasta = BedTool(args.fasta)
     for line in bedFile:
