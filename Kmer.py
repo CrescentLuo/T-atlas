@@ -47,6 +47,7 @@ with open(args.bed) as bedFile:
     pool = Pool(processes = int(args.process))
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
+    print args.fasta
     fasta = BedTool(args.fasta)
     print fasta
     for line in bedFile:
