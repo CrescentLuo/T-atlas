@@ -23,6 +23,8 @@ def kmerPermutation(K):
 def kmerFreq(fasta, K, line):
     bedline = BedTool(line, from_string=True)
     #print bedline
+    print fasta
+    print bedline
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
     print get_fasta
     #print get_fasta
