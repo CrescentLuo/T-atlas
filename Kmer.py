@@ -20,8 +20,7 @@ def kmerPermutation(K):
         nucbase_kmer_dict[kmer] = idx
     return nucbase_kmer_dict
 
-def kmerFreq(K, line):
-    line = line.rstrip()
+def kmerFreq(fasta, K, line):
     bedline = BedTool(line, from_string=True)
     #print bedline
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
@@ -50,6 +49,6 @@ with open(args.bed) as bedFile:
         #print line
         bedline = BedTool(line, from_string=True)
         print bedline
-        pool.apply_async(kmerFreq, args=(K, line))
+        pool.apply_async(kmerFreq, args=(fasta, K, line))
     pool.close()
     pool.join()
