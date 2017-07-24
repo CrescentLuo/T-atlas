@@ -20,7 +20,7 @@ def kmerPermutation(K):
         nucbase_kmer_dict[kmer] = idx
     return nucbase_kmer_dict
 
-def kmerFreq(lock, K, line):
+def kmerFreq(K, line):
     bedline = BedTool(line, from_string=True)
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
     seq =  (open(get_fasta.seqfn).read()).split('\n')[1]
@@ -35,19 +35,16 @@ def kmerFreq(lock, K, line):
             kmer_freq[kmer_dict[kmer]] += 1
     for ind,cnt in enumerate(kmer_freq):
         kmer_freq[ind] = cnt / length * 1000 
-    kmer_freq = [str(freq) for freq in kmer_freq]
-    lock.acquire()   
+    kmer_freq = [str(freq) for freq in kmer_freq]  
     print line.split()[3]+'\t'+'\t'.join(kmer_freq)
-    lock.release()
 
 with open(args.bed) as bedFile:
-    lock = Lock()
     pool = Pool(processes = int(args.process))
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
     fasta = BedTool(args.fasta)
     for line in bedFile:
         print line
-        pool.apply_async(kmerFreq, args=(lock, K, line))
+        pool.apply_async(kmerFreq, args=(K, line))
     pool.close()
     pool.join()
