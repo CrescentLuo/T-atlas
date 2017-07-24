@@ -47,6 +47,6 @@ with open(args.bed) as bedFile:
     kmer_dict = kmerPermutation(K)
     fasta = BedTool(args.fasta)
     for line in bedFile:
-        pool.apply_async(target=kmerFreq, args=(lock, K, line)).start()
+        pool.apply_async(kmerFreq, args=(lock, K, line))
     pool.close()
     pool.join()
