@@ -22,9 +22,9 @@ def kmerPermutation(K):
 
 def kmerFreq(fasta, K, line):
     bedline = BedTool(line, from_string=True)
-    #print bedline
     print fasta
     print bedline
+    print K
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
     print get_fasta
     #print get_fasta
@@ -51,9 +51,6 @@ with open(args.bed) as bedFile:
     fasta = BedTool(args.fasta)
     #print type(fasta)
     for line in bedFile:
-        #print line
-        #bedline = BedTool(line, from_string=True)
-        #print bedline
         pool.apply_async(kmerFreq, args=(fasta, K, line,))
     pool.close()
     pool.join()
