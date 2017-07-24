@@ -24,6 +24,7 @@ def kmerFreq(fasta, K, line):
     bedline = BedTool(line, from_string=True)
     #print bedline
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
+    print get_fasta
     #print get_fasta
     seq =  (open(get_fasta.seqfn).read()).split('\n')[1]
     #print seq
