@@ -21,7 +21,7 @@ def kmerPermutation(K):
     return nucbase_kmer_dict
 
 def kmerFreq(K, line):
-    print line.rstrip()
+    line = line.rstrip()
     bedline = BedTool(line, from_string=True)
     print bedline
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
