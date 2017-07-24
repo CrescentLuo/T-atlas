@@ -47,8 +47,8 @@ with open(args.bed) as bedFile:
     fasta = BedTool(args.fasta)
     for line in bedFile:
         #print line
-        bedline = BedTool(line, from_string=True)
-        print bedline
+        #bedline = BedTool(line, from_string=True)
+        #print bedline
         pool.apply_async(kmerFreq, args=(fasta, K, line))
     pool.close()
     pool.join()
