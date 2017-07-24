@@ -48,6 +48,7 @@ with open(args.bed) as bedFile:
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
     fasta = BedTool(args.fasta)
+    print fasta
     for line in bedFile:
         #print line
         #bedline = BedTool(line, from_string=True)
