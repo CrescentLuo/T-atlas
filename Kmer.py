@@ -1,8 +1,8 @@
 import sys
 import argparse
 import itertools
+import pybedtools
 from pybedtools import BedTool
-from multiprocessing import Process,Lock,Pool
 
 parser = argparse.ArgumentParser(description='get fasta from bed files and count ATCG percentage')
 parser.add_argument('-b', '--bed', required=True, help='input bed file')
@@ -20,37 +20,31 @@ def kmerPermutation(K):
         nucbase_kmer_dict[kmer] = idx
     return nucbase_kmer_dict
 
-def kmerFreq(fasta, K, line):
+def kmerFreq( K, line):
     bedline = BedTool(line, from_string=True)
-    print fasta
-    print bedline
-    print K
+    fasta = pybedtools.example_filename(args.fasta)
     get_fasta = bedline.sequence(fi=fasta, split=True, s=True)
-    print get_fasta
+    #print get_fasta
     #print get_fasta
     seq =  (open(get_fasta.seqfn).read()).split('\n')[1]
     #print seq
     seq = seq.upper()
+    #print seq
     length = len(seq)
-    kmer_freq = [0.0] * (4 ** 5)
+    kmer_freq = [0.0] * (4 ** K)
     isoform = line.rstrip().split()[4]
-    for i in range(5, length):
-        kmer = seq[i-5:i]
+    for i in range(K, length):
+        kmer = seq[i-K:i]
         if kmer in kmer_dict:
             kmer_freq[kmer_dict[kmer]] += 1
     for ind,cnt in enumerate(kmer_freq):
         kmer_freq[ind] = cnt / length * 1000 
     kmer_freq = [str(freq) for freq in kmer_freq]  
     print line.split()[3]+'\t'+'\t'.join(kmer_freq)
+    #return line.split()[3]+'\t'+'\t'.join(kmer_freq)
 
 with open(args.bed) as bedFile:
-    pool = Pool(processes = int(args.process))
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
-    #print args.fasta
-    fasta = BedTool(args.fasta)
-    #print type(fasta)
     for line in bedFile:
-        pool.apply_async(kmerFreq, args=(fasta, K, line,))
-    pool.close()
-    pool.join()
+        kmerFreq(K, line)
