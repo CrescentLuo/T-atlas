@@ -17,19 +17,20 @@ args = parser.parse_args()
 def kmerPermutation(K):
     nucbase = "ATCG"
     nucbase_kmer_dict = dict()
+    header = "isoform"
     for idx,combination in enumerate(itertools.product(nucbase, repeat=K)):
         kmer = ''.join(combination)
         nucbase_kmer_dict[kmer] = idx
-    header = "isoform\t"+'\t'.join([ Kmer for Kmer in nucbase_kmer_dict])
+        header = header + '\t' + kmer
     print header
     return nucbase_kmer_dict
 
-def kmerFreq( K, line):
+def kmerFreq(K, line):
     sline = line.rstrip().split()
     chrom = sline[0]
     start = sline[1]
     end = sline[2]
-    exonCnt = int(sline[10])
+    exonCnt = int(sline[9])
     exonlen = sline[10].rstrip(',').split(',')
     exonlen = [int(length) for length in exonlen]
     exonS = sline[11].rstrip(',').split(',')
@@ -51,7 +52,7 @@ def kmerFreq( K, line):
     isoform = sline[4]
     for kmer in kmer_dict:
         if args.overlap:
-            kmer_ferq[kmer_dict[kmer]] = spliced_seq.count_overlap(kmer) + 0.0
+            kmer_freq[kmer_dict[kmer]] = spliced_seq.count_overlap(kmer) + 0.0
         else:
             kmer_freq[kmer_dict[kmer]] = spliced_seq.count(kmer) + 0.0
     for ind,cnt in enumerate(kmer_freq):
