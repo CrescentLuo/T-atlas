@@ -44,7 +44,9 @@ def kmerFreq( K, line):
     #return line.split()[3]+'\t'+'\t'.join(kmer_freq)
 
 with open(args.bed) as bedFile:
+    pybedtools.set_tempdir('./')
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
     for line in bedFile:
         kmerFreq(K, line)
+        
