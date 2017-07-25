@@ -30,7 +30,7 @@ def kmerFreq( K, line):
     exonlen = sline[10].rstrip(',').split(',')
     exonS = sline[11].rstrip(',').split(',')
     strand = sline[5]
-    gene_seq = records[chrom].seq[int(sline[1]):int(sline[2])]
+    gene_seq = records[chrom].seq[int(sline[1]):int(sline[2])].upper()
     spliced_seq = ""
     for i in range(exonCnt):
         spliced_seq = spliced_seq + gene_seq[exonS[i]:(exonS[i] + exonlen[i])]
@@ -42,10 +42,8 @@ def kmerFreq( K, line):
     length = len(seq)
     kmer_freq = [0.0] * (4 ** K)
     isoform = line.rstrip().split()[4]
-    for i in range(K, length):
-        kmer = seq[i-K:i]
-        if kmer in kmer_dict:
-            kmer_freq[kmer_dict[kmer]] += 1
+    for kmer in kmer_dict:
+        kmer_freq[kmer_dict[kmer]] += spliced_seq
     for ind,cnt in enumerate(kmer_freq):
         kmer_freq[ind] = cnt / length * 1000 
     kmer_freq = [str(freq) for freq in kmer_freq]  
