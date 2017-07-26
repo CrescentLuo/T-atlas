@@ -66,6 +66,7 @@ records = SeqIO.to_dict(SeqIO.parse(open(args.fasta), 'fasta'))
 
 with open(args.bed) as bedFile, open(args.output,"w") as output:
     isoforms = bedFile.read().splitlines()
+    print isoforms
     K = int(args.repeat)
     kmer_dict = kmerPermutation(K)
     pool = Pool(processes = int(args.process))
