@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys 
-import pysam 
+import pysam
+import Queue
 import argparse
 from collections import defaultdict
 from multiprocessing import Pool
@@ -41,7 +42,13 @@ def parsebed(line):
 
 def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
     for region in regions:
-            t_bam.fetch()
+        mapped_reads = t_bam.count(chrom, region[0], region[1])
+        
+
+
+
+
+
         
         
 
