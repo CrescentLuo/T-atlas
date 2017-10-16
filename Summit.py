@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import sys 
 import pysam
-import Queue
 import argparse
 from collections import defaultdict
 from multiprocessing import Pool
@@ -42,20 +41,56 @@ def parsebed(line):
 
 def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
     for region in regions:
-        mapped_reads = t_bam.count(chrom, region[0], region[1])
-        
-
-
-
-
-
-        
-        
-
+        mapped_reads = t_bam.fetch(chrom, region[0], region[1])
+        region_q = list()
+        step_q = list()
+        base_win_set = list()
+        win_start = region[0]
+        win_end = region[0] + winSize
+        win_cnt = 0.0
+        extending = False
+        for read in mapped_reads:
+            if win_end >= region[1]:
+                break
+            if read.pos >= win_start and read.pos < win_end:
+                if extending:
+                    step_q.append(read.pos)
+                else:
+                    q.put(read.pos)
+            else:
+                win_extend_cnt = q.qsize()
+                if extending:
+                    win_exp = win_cnt / ((win_end - win_start) * t_bam.mapped_reads) * (10**9)
+                else:
+                    win_exp = win_cnt / ((win_end - win_start - step) * t_bam.mapped_reads) * (10**9)
+                # Count the expression level of window
+                # If window expression is higher than cutoff then open extending frame
+                if win_exp >= exp_lvl:
+                    # If the window is extended then calculate current extending frame 
+                    # Decide whether to extend one more step
+                    if extending:
+                        step_exp = step_cnt / (step * t_bam.mapped_reads) * (10**9)
+                        if win_exp * 1.5 >= step_exp and win_exp * 0.667 <= step_exp:
+                            win_end = win_end + step_exp
+                            extending =  True
+                        else:
+                            base_win_set.append(chrom, win_start, win_end, win_exp )
+                            extending = False
+                    else:
+                        win_end = win_end + step
+                        extending = True
+                else:
+                    extending = False
+                    win_start += step
+                    win_end += step
+                    while q[0].pos < win_start:
+                        q.pop()
+        if extending:
+            base_win_set
 def main():
     t_bam = pysam.AlignmentFile(args.target,"rb")
     c_bam = pysam.AlignmentFile(args.control,"rb")
-    outfile = args.outfil
+    outfile = args.outfile
     exp_cutoff = args.exp
     with open(args.bed) as ref_file:
         p = Pool(processes=args.process)
