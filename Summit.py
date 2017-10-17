@@ -124,4 +124,7 @@ def main():
         p.join()
         for res in results:
                 print res.get()
+
+if __name__ == '__main__':
+    main()
             
