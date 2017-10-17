@@ -112,16 +112,18 @@ def main():
     outfile = args.outfile
     exp_cutoff = args.exp
     with open(args.bed) as ref_file:
-        p = Pool(processes=args.process)
+        #p = Pool(processes=args.process)
         results = []
         for line in ref_file:
             name, strand, regions, chrom, introns = parsebed(line.rstrip())
-            results.append(p.apply_async(cal_p, args=(regions, exp_cutoff, chrom, strand, name, winSize, step, t_bam, c_bam)))
+            #results.append(p.apply_async(cal_p, args=(regions, exp_cutoff, chrom, strand, name, winSize, step, t_bam, c_bam)))
+            results.append(cal_p(regions, exp_cutoff, chrom, strand, name, winSize, step, t_bam, c_bam))
             for intron in introns:
                 intron_name = '%s_intron%i' % (name, intron[-1])
-                results.append(p.apply_async(cal_p, args=(intron[:-1], exp_cutoff, chrom, strand, intron_name, winSize, step, t_bam, c_bam)))
-        p.close()
-        p.join()
+                #results.append(p.apply_async(cal_p, args=(intron[:-1], exp_cutoff, chrom, strand, intron_name, winSize, step, t_bam, c_bam)))
+                results.append(cal_p(intron[:-1], exp_cutoff, chrom, strand, intron_name, winSize, step, t_bam, c_bam))
+        #p.close()
+        #p.join()
         for res in results:
                 print res.get()
 
