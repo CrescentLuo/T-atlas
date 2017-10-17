@@ -74,7 +74,7 @@ def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
                             win_end = win_end + step_exp
                             extending =  True
                         else:
-                            base_win_set.append(chrom, win_start, win_end, win_exp )
+                            base_win_set.append(chrom, win_start, win_end, win_exp)
                             extending = False
                     else:
                         win_end = win_end + step
@@ -86,7 +86,23 @@ def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
                     while q[0].pos < win_start:
                         q.pop()
         if extending:
-            base_win_set
+            base_win_set.append(chrom, win_start, win_end, win_exp)
+        p = list()
+        win_set = list()
+        for i in xrange(len(base_win_set)):
+            if i == 0:
+                p = base_win_set[i]
+            else:
+                if base_win_set[i][1] - p[i-1][2]:
+                    p[i][2] = base_win_set[i][1]
+                    if i == len(base_win_set - 1):
+                        win_set.append(p)
+                else:
+                    win_set.append(p)
+                    if i == len(base_win_set - 1):
+                        win_set.append(base_win_set[i])
+    return win_set
+                
 def main():
     t_bam = pysam.AlignmentFile(args.target,"rb")
     c_bam = pysam.AlignmentFile(args.control,"rb")
@@ -104,6 +120,6 @@ def main():
         p.close()
         p.join()
         for res in results:
-            if res.get()
-                outf.write(r.get())
+            for win in res.get()
+                print win
             
