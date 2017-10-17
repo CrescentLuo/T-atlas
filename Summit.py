@@ -9,7 +9,7 @@ def argumentparse():
     parser = argparse.ArgumentParser(description="Peak finder")
     parser.add_argument('-c', '--control', help="control bam file")
     parser.add_argument('-t', '--target', help="target bam file")
-    parser.add_argument('-s', '--size', help="sliding window size")
+    parser.add_argument('-s', '--size', help="sliding window ize")
     parser.add_argument('-g', '--gtf', help="gene annotation file")
     parser.add_argument('-b', '--bed', help="bed format annotation file")
     parser.add_argument('-p', '--process', type=int, help="number of process ")
@@ -21,7 +21,7 @@ def argumentparse():
 def parsebed(line):
     items = line.split()
     if len(items) == 12:
-        chrom, start, end, name, score, strand, cdssta, cdsend, rgb, exonCnt, sizes, offsets = item
+        chrom, start, end, name, score, strand, cdssta, cdsend, rgb, exonCnt, sizes, offsets = items
         start = int(start)
         end = int(end)
         exonCnt = int(exonCnt)
@@ -39,7 +39,7 @@ def parsebed(line):
         introns = []
     return (name, strand, regions, chrom, introns)
 
-def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
+def cal_p(regions, exp_lvl, chrom, strand, name, size, winSize, step, t_bam, c_bam):
     for region in regions:
         mapped_reads = t_bam.fetch(chrom, region[0], region[1])
         region_q = list()
@@ -56,9 +56,9 @@ def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
                 if extending:
                     step_q.append(read.pos)
                 else:
-                    q.put(read.pos)
+                    region_q.append(read.pos)
             else:
-                win_extend_cnt = q.qsize()
+                step_cnt = len(step_q)
                 if extending:
                     win_exp = win_cnt / ((win_end - win_start) * t_bam.mapped_reads) * (10**9)
                 else:
@@ -83,8 +83,8 @@ def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
                     extending = False
                     win_start += step
                     win_end += step
-                    while q[0].pos < win_start:
-                        q.pop()
+                    while region_q[0].pos < win_start:
+                        region_q.pop()
         if extending:
             base_win_set.append(chrom, win_start, win_end, win_exp)
         p = list()
@@ -104,8 +104,11 @@ def cal_p(regions, exp_lvl, strand, name, size, repeats, FDR, t_bam, c_bam):
     return win_set
                 
 def main():
+    args = argumentparse()
     t_bam = pysam.AlignmentFile(args.target,"rb")
     c_bam = pysam.AlignmentFile(args.control,"rb")
+    winSize = args.size
+    step = 100
     outfile = args.outfile
     exp_cutoff = args.exp
     with open(args.bed) as ref_file:
@@ -113,13 +116,12 @@ def main():
         results = []
         for line in ref_file:
             name, strand, regions, chrom, introns = parsebed(line.rstrip())
-            result.append(p.apply_async(cal_p, args=(regions, exp_cutoff, strand, name, size, repeats, FDR, t_bam, c_bam)))
+            results.append(p.apply_async(cal_p, args=(regions, exp_cutoff, chrom, strand, name, winSize, step, t_bam, c_bam)))
             for intron in introns:
                 intron_name = '%s_intron%i' % (name, intron[-1])
-                result.append(p.apply_async(cal_p, args=(intron[:-1], exp_cutoff, strand, intron_name, size, repeats, FDR, t_bam, c_bam)))
+                results.append(p.apply_async(cal_p, args=(intron[:-1], exp_cutoff, chrom, strand, intron_name, winSize, step, t_bam, c_bam)))
         p.close()
         p.join()
         for res in results:
-            for win in res.get()
-                print win
+                print res.get()
             
