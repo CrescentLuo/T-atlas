@@ -18,5 +18,5 @@ for rec in GFF.parse(gff_handle, limit_info=limits):
 
 miso_bf = pd.read_table(args.input)
 for event in miso_bf.iterrows():
-    print event['event_name'], print gff_dict[event['event_name']][1], print even['diff']
+    print event['event_name'], gff_dict[event['event_name']][1], event['diff']
 
