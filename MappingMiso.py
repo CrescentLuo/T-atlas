@@ -17,6 +17,6 @@ for rec in GFF.parse(gff_handle, limit_info=limits):
         gff_dict[gene_feature.id] = [gene_feature.qualifiers['ensg_id'][0],gene_feature.qualifiers['gsymbol'][0]]
 
 miso_bf = pd.read_table(args.input)
-for event in miso_bf.iterrows():
+for index,event in miso_bf.iterrows():
     print event['event_name'], gff_dict[event['event_name']][1], event['diff']
 
