@@ -9,5 +9,6 @@ limits = dict(gff_type = ['gene','mRNA'])
 gff_handle = open(args.gff)
 for rec in GFF.parse(gff_handle, limit_info=limits):
     for gene_feature in rec.features:
-        print gene_feature.id, gene_feature.qualifiers['gsymbol']
+        print gene_feature
+        print gene_feature.id, gene_feature.qualifiers['gsymbol'][0]
 
