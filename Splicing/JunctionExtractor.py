@@ -58,8 +58,8 @@ def parse_junction_reads(alignment):
     ref_pos = 
     cigartuples = aln.cigartuples
 
-
-    int n_cigar = aln->core.n_cigar;
+    """123"""
+    #int n_cigar = aln->core.n_cigar;
     if (n_cigar <= 1) // max one cigar operation exists(likely all matches)
         return 0;
 
