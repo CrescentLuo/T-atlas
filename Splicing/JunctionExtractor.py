@@ -2,15 +2,6 @@ import argparse
 import pysam
 import sys
 
-# Parser arguments
-parser = argparse.ArgumentParser(description='Extract Junction Reads from bamfile')
-parser.add_argument('-a', '--anchor', help='mininum anchor length')
-parser.add_argument('-i', '--mini', help='mininum intron length')
-parser.add_argument('-I', '--maxi', help='maxinum intron length')
-parser.add_argument('-o', '--out', help='output file path')
-parser.add_argument('-r', '--region', help='junction reads from spcific regions')
-args = parser.parse_args()
-
 # Cigar operation dictory
 CigarDict = {
     0: 'M', # BAM_CMATCH
@@ -33,6 +24,19 @@ class Junction():
         self.start = start
         self.end = end
 
+JuncSet = dict()
+
+# Parser arguments
+def parse_opt():
+    parser = argparse.ArgumentParser(description='Extract Junction Reads from bamfile')
+    parser.add_argument('-a', '--anchor', help='mininum anchor length')
+    parser.add_argument('-i', '--mini', help='mininum intron length')
+    parser.add_argument('-I', '--maxi', help='maxinum intron length')
+    parser.add_argument('-o', '--out', help='output file path')
+    parser.add_argument('-r', '--region', help='junction reads from spcific regions')
+    args = parser.parse_args()
+    return args
+
 # Get bamfile
 def get_bamfile(bamfile):
     try:
@@ -45,104 +49,92 @@ def get_bamfile(bamfile):
         msg='index of %s not found' % bamfile
     else:
         return bam
-        
-        
 
-
-# Parse alignment to junctions
-def parse_junction_reads(alignment):
-    aln = alignment
-    if aln.is_unmapped:
-        return null
-    reference = 
-    ref_pos = 
-    cigartuples = aln.cigartuples
-
-    """123"""
-    #int n_cigar = aln->core.n_cigar;
-    if (n_cigar <= 1) // max one cigar operation exists(likely all matches)
-        return 0;
-
-    int chr_id = aln->core.tid;
-    int read_pos = aln->core.pos;
-    string chr(header->target_name[chr_id]);
-    uint32_t *cigar = bam_get_cigar(aln);
-
-    /*
-    //Skip duplicates
-    int flag = aln->core.flag;
-    if(flag & 1024) {
-        cerr << "Skipping read_pos " << read_pos << " flag " << flag << endl;
+# Add Junction
+def add_junction(junc):
+    #Check junction_qc
+    """
+    if(!junction_qc(junc)) {
         return 0;
     }
-    */
+    """
+    tag = junc.chrom + ':' + str(junc.start) + '-' + str(junc.end) + ':' + junc.strand
+    if tag not in JunctSet:
+        junc.name = get_new_junction_name(JunctSet)
+        junc.read_count = 1
+        junc.score = str(junc.read_count)
+    else:
+        ori_junc = JuncSet[tag]
+        junc.read_count = ori_junc.read_count + 1
+        junc.score = str(junc.read_count)
+        junc.name = ori_junc.name
+        # Update thick_start
+        if ori_junc.thick_start < junc.thick_start:
+            junc.thick_start = ori_junc.thick_start;
+        if ori_junc.thick_end > junc.thick_end:
+            junc.thick_end = ori_junc.thick_end
+        # Update anchor information
+        junc.left_anchor = junc.left_anchor or ori_junc.left_anchor
+        junc.right_anchor = junc.right_anchor or ori_junc.right_anchor
+    #Add junction 
+    JuncSet[tag] = junc
 
-    Junction j1;
-    j1.chrom = chr;
-    j1.start = read_pos; //maintain start pos of junction
-    j1.thick_start = read_pos;
-    set_junction_strand(aln, j1);
-    bool started_junction = false;
-
+# Parse alignment to junctions
+def parse_junction_reads(chrom, ref_pos, strand, cigartuples):
+    junc = Junction(chrom,strand,ref_pos,ref_pos)
     started_junction = False
     for cigar_oper, cigar_len in cigar_tuple:
         if CigarDict[cigar_oper] == 'N':
-            if !started_junction:
-                
-                    j1.end = j1.start + len;
-                    j1.thick_end = j1.end;
-                    //Start the first one and remains started
-                    started_junction = true;
-                } else {
-                    //Add the previous junction
-                    try {
-                        add_junction(j1);
-                    } catch (const std::logic_error& e) {
-                        cout << e.what() << '\n';
-                    }
-                    j1.thick_start = j1.end;
-                    j1.start = j1.thick_end;
-                    j1.end = j1.start + len;
-                    j1.thick_end = j1.end;
-                    //For clarity - the next junction is now open
-                    started_junction = true;
-                }
-                break;
-            if 
+            if not started_junction:
+                junc.end = junc.start + cigar_len
+                junc.thick_end = junc.end
+                #Start the first one and remains started
+                started_junction = true;
+            else:
+                #Add the previous junction
+                try：
+                    add_junction(junc)
+                except (const std::logic_error& e
+                        cout << e.what() << '\n'
+                junc.thick_start = junc.end;
+                junc.start = junc.thick_end;
+                junc.end = junc.start + cigar_len;
+                junc.thick_end = junc.end;
+                #/For clarity - the next junction is now open
+                started_junction = true
         elif CigarDict[cigar_oper] == 'M':
-            if(!started_junction)
-                    j1.start += len;
-                else
-                    j1.thick_end += len;
-                break;
+            if not started_junction:
+                junc.start += cigar_len
+            else:
+                junc.thick_end += cigar_len
         elif CigarDict[cigar_oper] == 'X':
-            if(!started_junction) {
-                    j1.start += len;
-                    j1.thick_start = j1.start;
-                } else {
+            if not started_junction:
+                junc.start += cigar_len
+                junc.thick_start = junc.start
+            else:
                     try {
-                        add_junction(j1);
+                        add_junction(junc);
                     } catch (const std::logic_error& e) {
                         cout << e.what() << '\n';
                     }
                     //Don't include these in the next anchor
-                    j1.start = j1.thick_end + len;
-                    j1.thick_start = j1.start;
+                    junc.start = junc.thick_end + len;
+                    junc.thick_start = junc.start;
                 }
                 started_junction = false;
                 break;
         elif CigarDict[cigar_oper] == 'S':
-             if(!started_junction)
-                    j1.thick_start = j1.start;
+             if not started_junction
+                    junc.thick_start = junc.start;
                 else {
                     try {
-                        add_junction(j1);
+                        add_junction(junc);
                     } catch (const std::logic_error& e) {
                         cout << e.what() << '\n';
                     }
                     //Don't include these in the next anchor
-                    j1.start = j1.thick_end;
-                    j1.thick_start = j1.start;
+                    junc.start = junc.thick_end;
+                    junc.thick_start = junc.start;
                 }
                 started_junction = false;
                 break;
@@ -153,7 +145,7 @@ def parse_junction_reads(alignment):
             "Unknown Cigar"
         if started_junction:
             try {
-            add_junction(j1);
+            add_junction(junc);
         } catch (const std::logic_error& e) {
             cout << e.what() << '\n';
         }
@@ -161,6 +153,39 @@ def parse_junction_reads(alignment):
     return 0;
 }
 
+# Get alignment 
+def get_alignment(bam):
+    alignment = bam.fetch()
+    for aln in alignment:
+        flag = aln.flag
+        
+        # flag filter 
+        # read unmapped (0x4)
+        # not primary alignment (0x100)
+        # read is PCR or optical duplicate (0x400)
+        
+        if flag & 0x504:
+            continue
+
+        chrom = aln.get_reference_name()
+        ref_pos = aln.get_pos()
+        cigartuples = aln.cigartuples
+        strand = get_strand(aln)
+        # only one cigar in cigar string
+        if len(cigartuples) == 1:
+            continue
+        
+        parse_junction_reads(chrom, ref_pos, strand, cigartuples)
+        
 # Get the strand based on 
-def get_strand():
-    return strand
+def get_strand(aln):
+    if aln.is_reverse:
+        return '-'
+    else:
+        return '+'
+
+if __name__ == '__main__':
+    args = parse_opt()
+    bam = get_bamfile(args.bamfile)
+    
+
