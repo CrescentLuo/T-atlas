@@ -18,13 +18,16 @@ CigarDict = {
 
 class Junction():
     """ Class of a junction """
-    def __init__(self, chrom, start, end):
+    def __init__(self, chrom, strand, start, end):
         """Init with chrom, chromStart and chromEnd"""
         self.chrom = chrom
         self.start = start
         self.end = end
 
 JuncSet = dict()
+
+def get_new_junction_name(set):
+    return 'Junction'+str(len(set))
 
 # Parser arguments
 def parse_opt():
@@ -50,6 +53,9 @@ def get_bamfile(bamfile):
     else:
         return bam
 
+def get_junction_set():
+    [ v for v in sorted(JuncSet.values())] 
+
 # Add Junction
 def add_junction(junc):
     #Check junction_qc
@@ -59,8 +65,8 @@ def add_junction(junc):
     }
     """
     tag = junc.chrom + ':' + str(junc.start) + '-' + str(junc.end) + ':' + junc.strand
-    if tag not in JunctSet:
-        junc.name = get_new_junction_name(JunctSet)
+    if tag not in JuncSet:
+        junc.name = get_new_junction_name(JuncSet)
         junc.read_count = 1
         junc.score = str(junc.read_count)
     else:
@@ -78,80 +84,68 @@ def add_junction(junc):
         junc.right_anchor = junc.right_anchor or ori_junc.right_anchor
     #Add junction 
     JuncSet[tag] = junc
-
+    return True
 # Parse alignment to junctions
 def parse_junction_reads(chrom, ref_pos, strand, cigartuples):
     junc = Junction(chrom,strand,ref_pos,ref_pos)
     started_junction = False
-    for cigar_oper, cigar_len in cigar_tuple:
-        if CigarDict[cigar_oper] == 'N':
-            if not started_junction:
-                junc.end = junc.start + cigar_len
-                junc.thick_end = junc.end
-                #Start the first one and remains started
-                started_junction = true;
-            else:
-                #Add the previous junction
-                try：
-                    add_junction(junc)
-                except (const std::logic_error& e
-                        cout << e.what() << '\n'
-                junc.thick_start = junc.end;
-                junc.start = junc.thick_end;
-                junc.end = junc.start + cigar_len;
-                junc.thick_end = junc.end;
-                #/For clarity - the next junction is now open
-                started_junction = true
-        elif CigarDict[cigar_oper] == 'M':
+    for cigar_oper, cigar_len in cigartuples:
+        if CigarDict[cigar_oper] == 'M':
             if not started_junction:
                 junc.start += cigar_len
             else:
                 junc.thick_end += cigar_len
+        elif CigarDict[cigar_oper] == 'I':
+            pass
+        elif CigarDict[cigar_oper] == 'D':
+            pass
+        elif CigarDict[cigar_oper] == 'N':
+            if not started_junction:
+                junc.end = junc.start + cigar_len
+                junc.thick_end = junc.end
+                #Start the first one and remains started
+                started_junction = True
+            else:
+                #Add the previous junction
+                add_junction(junc)
+                junc.thick_start = junc.end
+                junc.start = junc.thick_end
+                junc.end = junc.start + cigar_len
+                junc.thick_end = junc.end
+                #/For clarity - the next junction is now open
+                started_junction = True
+        elif CigarDict[cigar_oper] == 'S':
+            if not started_junction:
+                    junc.thick_start = junc.start
+            else:
+                add_junction(junc)
+                junc.start = junc.thick_end
+                junc.thick_start = junc.start
+            started_junction = False
+        elif CigarDict[cigar_oper] == 'H':
+            # NO hard clip is considered
+            pass
         elif CigarDict[cigar_oper] == 'X':
             if not started_junction:
                 junc.start += cigar_len
                 junc.thick_start = junc.start
             else:
-                    try {
-                        add_junction(junc);
-                    } catch (const std::logic_error& e) {
-                        cout << e.what() << '\n';
-                    }
-                    //Don't include these in the next anchor
-                    junc.start = junc.thick_end + len;
-                    junc.thick_start = junc.start;
-                }
-                started_junction = false;
-                break;
-        elif CigarDict[cigar_oper] == 'S':
-             if not started_junction
-                    junc.thick_start = junc.start;
-                else {
-                    try {
-                        add_junction(junc);
-                    } catch (const std::logic_error& e) {
-                        cout << e.what() << '\n';
-                    }
-                    //Don't include these in the next anchor
-                    junc.start = junc.thick_end;
-                    junc.thick_start = junc.start;
-                }
-                started_junction = false;
-                break;
-        elif CigarDict[cigar_oper] == 'H':
-            # NO hard clip is considered
-            break
+                add_junction(junc)
+                junc.start = junc.thick_end + cigar_len
+                junc.thick_start = junc.start
+            started_junction = False
         else:
-            "Unknown Cigar"
+            pass
         if started_junction:
-            try {
-            add_junction(junc);
-        } catch (const std::logic_error& e) {
-            cout << e.what() << '\n';
-        }
-    }
-    return 0;
-}
+            add_junction(junc)
+    return 0
+
+# Get the strand based on 
+def get_strand(aln):
+    if aln.is_reverse:
+        return '-'
+    else:
+        return '+'
 
 # Get alignment 
 def get_alignment(bam):
@@ -176,13 +170,6 @@ def get_alignment(bam):
             continue
         
         parse_junction_reads(chrom, ref_pos, strand, cigartuples)
-        
-# Get the strand based on 
-def get_strand(aln):
-    if aln.is_reverse:
-        return '-'
-    else:
-        return '+'
 
 if __name__ == '__main__':
     args = parse_opt()
