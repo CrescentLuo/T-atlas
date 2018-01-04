@@ -1,4 +1,5 @@
 import argparse
+from copy import deepcopy
 import pysam
 import sys
 
@@ -16,25 +17,68 @@ CigarDict = {
     9: 'B'  # BAM_CBACK
 }
 
-class Junction():
+class Junction:
     """ Class of a junction """
-    def __init__(self, chrom, strand, start, end):
+    def __init__(self, chrom, strand, start):
         """Init with chrom, chromStart and chromEnd"""
         self.chrom = chrom
+        self.strand = strand
         self.start = start
-        self.end = end
+        self.end = 0
+        self.thick_start = self.start
+        self.thick_end = self.end
+        self.left_anchor = False
+        self.right_anchor = False
+        self.name = "Junc"
+        self.read_count = 0
+        self.score = "0"
+    def __lt__(self, other):
+        """ cmp function of junction """
+        if self.chrom == other.chrom:
+            if self.start == other.start:
+                return self.end < other.end
+            else:
+                return self.start < other.start
+        else:
+            return self.chrom < other.chrom
+    def __repr__(self):
+        output = str(self.chrom)+'\t'+ \
+                 str(self.thick_start)+'\t'+ \
+                 str(self.thick_end)+'\t'+ \
+                 str(self.name)+'\t'+ \
+                 str(self.score)+'\t'+ \
+                 str(self.strand)+'\t'+ \
+                 str(self.thick_start)+'\t'+ \
+                 str(self.thick_end)+'\t'+ \
+                 "0,0,0\t2\t"+ \
+                 str(self.start-self.thick_start)+','+ \
+                 str(self.thick_end-self.end)+'\t'+ \
+                 "0,"+str(self.end - self.start)
 
-JuncSet = dict()
 
-def get_new_junction_name(set):
-    return 'Junction'+str(len(set))
+        return output
+    def filter(self, args):
+        """ filter junctions """
+        intron_len = self.end - self.start
+        left_anchor = self.start - self.thick_start
+        right_anchor = self.thick_end - self.end
+        if intron_len < args.mini or intron_len > args.maxi:
+            return False
+        if left_anchor >= args.anchor:
+            self.left_anchor = True
+        if right_anchor >= args.anchor:
+            self.right_anchor = True
+        return True
+def get_new_junction_name(SetLen):
+    return 'Junction'+str(SetLen+1)
 
 # Parser arguments
 def parse_opt():
     parser = argparse.ArgumentParser(description='Extract Junction Reads from bamfile')
-    parser.add_argument('-a', '--anchor', help='mininum anchor length')
-    parser.add_argument('-i', '--mini', help='mininum intron length')
-    parser.add_argument('-I', '--maxi', help='maxinum intron length')
+    parser.add_argument('-a', '--anchor', type=int, default=8, help='mininum anchor length')
+    parser.add_argument('-b', '--bam', help='input bamfile', required=True)
+    parser.add_argument('-i', '--mini', type=int, default=20, help='mininum intron length')
+    parser.add_argument('-I', '--maxi', type=int, default=10000, help='maxinum intron length')
     parser.add_argument('-o', '--out', help='output file path')
     parser.add_argument('-r', '--region', help='junction reads from spcific regions')
     args = parser.parse_args()
@@ -54,91 +98,86 @@ def get_bamfile(bamfile):
         return bam
 
 def get_junction_set():
-    [ v for v in sorted(JuncSet.values())] 
+    return [ v for v in sorted(JuncSet.values())]
+
 
 # Add Junction
-def add_junction(junc):
+def add_junction(JuncSet, junction):
+    junc = deepcopy(junction)
+    #print "if same ",junc is junction
     #Check junction_qc
-    """
-    if(!junction_qc(junc)) {
-        return 0;
-    }
-    """
-    tag = junc.chrom + ':' + str(junc.start) + '-' + str(junc.end) + ':' + junc.strand
-    if tag not in JuncSet:
-        junc.name = get_new_junction_name(JuncSet)
-        junc.read_count = 1
-        junc.score = str(junc.read_count)
-    else:
+    if not junc.filter(args):
+        return 
+    tag = str(junc.chrom) + ':' + str(junc.start) + '-' + str(junc.end) + ':' + str(junc.strand)
+    if tag in JuncSet:
         ori_junc = JuncSet[tag]
         junc.read_count = ori_junc.read_count + 1
         junc.score = str(junc.read_count)
         junc.name = ori_junc.name
         # Update thick_start
         if ori_junc.thick_start < junc.thick_start:
-            junc.thick_start = ori_junc.thick_start;
+            junc.thick_start = ori_junc.thick_start
         if ori_junc.thick_end > junc.thick_end:
             junc.thick_end = ori_junc.thick_end
         # Update anchor information
         junc.left_anchor = junc.left_anchor or ori_junc.left_anchor
         junc.right_anchor = junc.right_anchor or ori_junc.right_anchor
-    #Add junction 
-    JuncSet[tag] = junc
-    return True
+        JuncSet[tag] = junc
+    else:
+        junc.name = get_new_junction_name(len(JuncSet))
+        junc.read_count = 1
+        junc.score = str(junc.read_count)
+        JuncSet[tag] = junc
+    #Add junction
 # Parse alignment to junctions
-def parse_junction_reads(chrom, ref_pos, strand, cigartuples):
-    junc = Junction(chrom,strand,ref_pos,ref_pos)
+def parse_junction_reads(JuncSet, chrom, ref_pos, strand, cigartuples):
+    junc = Junction(chrom,strand,ref_pos)
     started_junction = False
     for cigar_oper, cigar_len in cigartuples:
         if CigarDict[cigar_oper] == 'M':
-            if not started_junction:
-                junc.start += cigar_len
-            else:
+            if started_junction:
                 junc.thick_end += cigar_len
-        elif CigarDict[cigar_oper] == 'I':
-            pass
-        elif CigarDict[cigar_oper] == 'D':
-            pass
-        elif CigarDict[cigar_oper] == 'N':
-            if not started_junction:
-                junc.end = junc.start + cigar_len
-                junc.thick_end = junc.end
-                #Start the first one and remains started
-                started_junction = True
             else:
-                #Add the previous junction
-                add_junction(junc)
+                junc.start += cigar_len
+        elif CigarDict[cigar_oper] == 'I':
+            continue
+        elif CigarDict[cigar_oper] == 'D':
+            continue
+        elif CigarDict[cigar_oper] == 'N':
+            if started_junction:
                 junc.thick_start = junc.end
                 junc.start = junc.thick_end
                 junc.end = junc.start + cigar_len
                 junc.thick_end = junc.end
                 #/For clarity - the next junction is now open
                 started_junction = True
-        elif CigarDict[cigar_oper] == 'S':
-            if not started_junction:
-                    junc.thick_start = junc.start
             else:
-                add_junction(junc)
+                junc.end = junc.start + cigar_len
+                junc.thick_end = junc.end
+                #Start the first one and remains started
+                started_junction = True
+        elif CigarDict[cigar_oper] == 'S':
+            if started_junction:
                 junc.start = junc.thick_end
+                junc.thick_start = junc.start
+            else:
                 junc.thick_start = junc.start
             started_junction = False
         elif CigarDict[cigar_oper] == 'H':
             # NO hard clip is considered
-            pass
+            continue
         elif CigarDict[cigar_oper] == 'X':
-            if not started_junction:
-                junc.start += cigar_len
+            if started_junction:
+                junc.start = junc.thick_end + cigar_len
                 junc.thick_start = junc.start
             else:
-                add_junction(junc)
-                junc.start = junc.thick_end + cigar_len
+                junc.start += cigar_len
                 junc.thick_start = junc.start
             started_junction = False
         else:
-            pass
-        if started_junction:
-            add_junction(junc)
-    return 0
+            continue
+    if started_junction:
+        add_junction(JuncSet, junc)
 
 # Get the strand based on 
 def get_strand(aln):
@@ -148,31 +187,31 @@ def get_strand(aln):
         return '+'
 
 # Get alignment 
-def get_alignment(bam):
+def get_alignment(bam, JuncSet):
     alignment = bam.fetch()
     for aln in alignment:
+        #print dir(aln)
         flag = aln.flag
-        
         # flag filter 
         # read unmapped (0x4)
         # not primary alignment (0x100)
         # read is PCR or optical duplicate (0x400)
-        
         if flag & 0x504:
             continue
-
-        chrom = aln.get_reference_name()
-        ref_pos = aln.get_pos()
+        chrom = aln.reference_name
+        ref_pos = aln.pos
         cigartuples = aln.cigartuples
         strand = get_strand(aln)
         # only one cigar in cigar string
         if len(cigartuples) == 1:
             continue
         
-        parse_junction_reads(chrom, ref_pos, strand, cigartuples)
+        parse_junction_reads(JuncSet, chrom, ref_pos, strand, cigartuples)
 
 if __name__ == '__main__':
     args = parse_opt()
-    bam = get_bamfile(args.bamfile)
-    
-
+    bam = get_bamfile(args.bam)
+    JuncSet = dict()
+    get_alignment(bam, JuncSet)
+    for junc in get_junction_set():
+        print junc
