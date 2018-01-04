@@ -53,7 +53,7 @@ class Junction:
                  "0,0,0\t2\t"+ \
                  str(self.start-self.thick_start)+','+ \
                  str(self.thick_end-self.end)+'\t'+ \
-                 "0,"+str(self.end - self.start)
+                 "0,"+str(self.end - self.thick_start)
 
 
         return output
