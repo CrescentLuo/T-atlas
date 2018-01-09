@@ -32,6 +32,7 @@ class Junction:
         self.name = "Junc"
         self.read_count = 0
         self.score = "0"
+
     def __lt__(self, other):
         """ cmp function of junction """
         if self.chrom == other.chrom:
@@ -54,9 +55,8 @@ class Junction:
                  str(self.start-self.thick_start)+','+ \
                  str(self.thick_end-self.end)+'\t'+ \
                  "0,"+str(self.end - self.thick_start)
-
-
         return output
+
     def filter(self, args):
         """ filter junctions """
         intron_len = self.end - self.start
