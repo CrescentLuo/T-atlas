@@ -12,6 +12,8 @@ parser.add_argument('--psi', type=float, default=0.0, help='mininum delta psi')
 args = parser.parse_args()
 
 with open(args.input) as as_events:
+    header = as_events.readline()
+    print header.rstrip()
     for line in as_events:
         event = line.rstrip().split()
         ijc_samp1 = [float(c) for c in event[12].split(',')]
