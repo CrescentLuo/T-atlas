@@ -11,6 +11,7 @@ parser.add_argument('-f', '--fasta', required=True, help='fasta file')
 parser.add_argument('-k', '--repeat', required=True, type=int, help='set K for kmer')
 parser.add_argument('-s', '--split', default=True, help='split to get mature sequence')
 parser.add_argument('-p', '--process', default=5, type=int,help='number of processes')
+parser.add_argument('-c', '--count', default=False, action='store_true', help='use count instead of frequency')
 parser.add_argument('-o', '--output', default="kmer_freq.txt", help='output file path')
 parser.add_argument('--overlap', action='store_true', help='Count kmer with or without overlapping')
 args = parser.parse_args()
@@ -56,8 +57,9 @@ def kmerFreq(isoform):
             kmer_freq[kmer_dict[kmer]] = spliced_seq.count_overlap(kmer) + 0.0
         else:
             kmer_freq[kmer_dict[kmer]] = spliced_seq.count(kmer) + 0.0
-    for ind,cnt in enumerate(kmer_freq):
-        kmer_freq[ind] = cnt / spliced_length * 1000 
+    if not(args.count):
+        for ind,cnt in enumerate(kmer_freq):
+            kmer_freq[ind] = cnt / spliced_length * 1000 
     kmer_freq = [str(freq) for freq in kmer_freq]  
     return iso+'\t'+'\t'.join(kmer_freq)+'\n'
     #return line.split()[3]+'\t'+'\t'.join(kmer_freq)
