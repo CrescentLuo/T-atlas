@@ -20,7 +20,7 @@ if __name__ == "__main__":
     args = parse_args()
     bc_pattern = args.pattern
     prefix = args.input.split('fastq')[0]
-    output_file_name = prefix + '.rmBc.fastq'
+    output_file_name = prefix + 'rmBc.fastq'
     bc_file_name = prefix + 'bc'
     with open(args.input) as input_file, open(output_file_name,'w') as output_file, open(bc_file_name, 'w') as bc_file:
         
