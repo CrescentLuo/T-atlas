@@ -2,7 +2,7 @@
 
 ## Usage
 
-Pipeline for iCLIP-seq data processing 
+Pipeline for iCLIP-seq data processing
 
 ## Data
 
@@ -64,7 +64,6 @@ For short reads from iCLIP-seq, they usually have barcode at 5' end, you need re
     rm_pcr.py sample1.rmAdapt.bc sample1.bowtie.uniq.bam &
     ```
     **results:**
-    
 
 5. Call peak
 
@@ -74,4 +73,3 @@ For short reads from iCLIP-seq, they usually have barcode at 5' end, you need re
     * Gene Yeo's paper
 
 6. Statisical test
-7. 
