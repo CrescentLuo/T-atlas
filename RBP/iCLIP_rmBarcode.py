@@ -20,12 +20,13 @@ def strip_barcode(pattern, seq):
 if __name__ == "__main__":   
     args = parse_args()
     bc_pattern = args.pattern
-    prefix = args.input.split('fastq')[0]
+    prefix = args.output.split('fastq')[0]
     
     with open(args.input) as input_file, open(args.output,'w') as output_file, open(prefix+'bc', 'w') as bc_file:
         
         for tag, seq, strand, quality, in itertools.zip_longest(*[input_file]*4):
             barcode, seq = strip_barcode(args.pattern, seq.rstrip())
+            tag = tag.split()[0]
             tag = tag.rstrip() + '_' + barcode
             strand = strand.rstrip()
             quality = quality.rstrip()[len(barcode):]
