@@ -7,7 +7,6 @@ def parse_args():
     parser.add_argument('-p', '--pattern', required=True,
                         help='pattern of barcode"XXXNNNXXXX", X means random barcode, N means sequencing barcode')
     parser.add_argument('-i', '--input', required=True, help='input fastq file')
-    parser.add_argument('-o', '--output', required=True, help='output file name')
     return parser.parse_args()
 
 def strip_barcode(pattern, seq):
@@ -20,9 +19,10 @@ def strip_barcode(pattern, seq):
 if __name__ == "__main__":   
     args = parse_args()
     bc_pattern = args.pattern
-    prefix = args.output.split('fastq')[0]
-    
-    with open(args.input) as input_file, open(args.output,'w') as output_file, open(prefix+'bc', 'w') as bc_file:
+    prefix = args.input.split('fastq')[0]
+    output_file_name = prefix + '.rmBc.fastq'
+    bc_file_name = prefix + 'bc'
+    with open(args.input) as input_file, open(output_file_name,'w') as output_file, open(bc_file_name, 'w') as bc_file:
         
         for tag, seq, strand, quality, in itertools.zip_longest(*[input_file]*4):
             barcode, seq = strip_barcode(args.pattern, seq.rstrip())
