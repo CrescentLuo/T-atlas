@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/usr/local/bin/python2",
+    "python.pythonPath": "/usr/local/bin/python3",
     "files.associations": {
         "iosfwd": "cpp"
     }
