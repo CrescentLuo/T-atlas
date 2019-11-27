@@ -1,6 +1,8 @@
 {
-    "python.pythonPath": "/usr/local/bin/python3",
+    "python.pythonPath": "/home/home1/blencowelab/zluo/software/anaconda2/envs/defcomp/bin/python",
     "files.associations": {
         "iosfwd": "cpp"
-    }
+    },
+    "python.linting.pylintEnabled": true,
+    "python.linting.enabled": true
 }
