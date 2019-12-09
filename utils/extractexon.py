@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('--anno', required=True,
                         help='input annotation in gtf format')
     parser.add_argument('--gene_type', default=None, help='specific genetype to exact')
-    parser.add_argument('--mid_exon_only', action='store_true', help="only extract middle introns" )
+    parser.add_argument('--mid_exon_only', action='store_true', help="only extract middle exons" )
     parser.add_argument('-o', '--output', default='./exons.bed', help="output prefix for files")
     args = parser.parse_args()
     return args
@@ -44,7 +44,7 @@ def get_gene_id_and_name(transcript):
   return dict(gene_id=gene_id, gene_name=gene_name)
 
 
-def get_intron(anno_file, gene_type, mid=False):
+def get_exon(anno_file, gene_type, mid=False):
     anno = pybedtools.BedTool(anno_file)
     anno_srt = anno.sort()
 
@@ -81,10 +81,10 @@ def get_intron(anno_file, gene_type, mid=False):
 if __name__ == "__main__":
     args = parse_args()
     with open(BedTool._tmp(), "w") as fh:
-      for i, intron in enumerate(get_intron(args.anno, args.gene_type, args.mid_exon_only)):
-        fh.write(str(intron))
+      for i, exon in enumerate(get_exon(args.anno, args.gene_type, args.mid_exon_only)):
+        fh.write(str(exon))
       exons = BedTool(fh.name)
       exons.sort().saveas(args.output)
       srt_output_fn = ".".join(args.output.split('.')[:-1]) + ".srt.bed" 
-      with open(srt_output_fn) as srt_output:
+      with open(srt_output_fn, "w") as srt_output:
         subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.out], stdout=srt_ouput)
