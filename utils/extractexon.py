@@ -87,4 +87,4 @@ if __name__ == "__main__":
       exons.sort().saveas(args.output)
       srt_output_fn = ".".join(args.output.split('.')[:-1]) + ".srt.bed" 
       with open(srt_output_fn, "w") as srt_output:
-        subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.out], stdout=srt_ouput)
+        subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.output], stdout=srt_output_fn)

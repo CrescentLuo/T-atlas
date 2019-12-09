@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "/home/home1/blencowelab/zluo/software/anaconda2/envs/defcomp/bin/python",
+    "python.pythonPath": "/home/zluo/anaconda3/bin/python",
     "files.associations": {
         "iosfwd": "cpp"
     },
