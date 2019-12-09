@@ -4,6 +4,7 @@ import pysam
 import pybedtools
 from pybedtools import BedTool
 import re
+import os
 import subprocess
 
 def parse_args():
@@ -85,6 +86,6 @@ if __name__ == "__main__":
         fh.write(str(exon))
       exons = BedTool(fh.name)
       exons.sort().saveas(args.output)
-      srt_output_fn = ".".join(args.output.split('.')[:-1]) + ".srt.bed" 
+      srt_output_fn = os.path.splitext(args.output)[0] + ".srt.bed" 
       with open(srt_output_fn, "w") as srt_output:
-        subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.output], stdout=srt_output_fn)
+        subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.output], stdout=srt_output)
