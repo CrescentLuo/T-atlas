@@ -4,7 +4,7 @@ import pysam
 import pybedtools
 from pybedtools import BedTool
 import re
-
+import subprocess
 
 def parse_args():
     parser = argparse.ArgumentParser(
@@ -65,7 +65,7 @@ def get_intron(anno_file, gene_type, mid=False):
         if not re.match("^chr((\d+)|X|Y)$",ts.chrom):
             continue
 
-        name_format_str = "{gene_id} ({gene_name})"
+        name_format_str = "{gene_id}_{gene_name}"
 
         for i, exon in enumerate(exons):
           if mid and (i==0 or i==len(exons)-1):
@@ -74,7 +74,7 @@ def get_intron(anno_file, gene_type, mid=False):
             yield pybedtools.Interval(
                 ts.chrom, exon.start, exon.end,
                 name_format_str.format(**get_gene_id_and_name(ts)),
-                "intron", ts.strand
+                "exon", ts.strand
             )
 
 
@@ -85,3 +85,6 @@ if __name__ == "__main__":
         fh.write(str(intron))
       exons = BedTool(fh.name)
       exons.sort().saveas(args.output)
+      srt_output_fn = ".".join(args.output.split('.')[:-1]) + ".srt.bed" 
+      with open(srt_output_fn) as srt_output:
+        subprocess.call(["sort", "-k","1,1","-k", "2,2n", "-k", "3,3n", "-k", "6,6","-u", args.out], stdout=srt_ouput)
