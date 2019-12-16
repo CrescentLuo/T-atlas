@@ -59,4 +59,4 @@ if __name__ == "__main__":
     mes_cov = mes_record[['mes5', 'mes3']].cov()
     print(mes_mean)
     print(mes_cov)
-    mes_record.to_csv(args.output, sep='\t')
+    mes_record.to_csv(args.output, sep='\t', index=False)
